@@ -290,9 +290,51 @@
       background: linear-gradient(135deg, #2d6a4f, #1b4332);
       color: #d8f3dc;
       box-shadow: 0 6px 24px #2d6a4f55;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
     }
 
     #resetBtn:hover { box-shadow: 0 8px 30px #2d6a4f88; transform: translateY(-2px); }
+
+    #resetBtn.pulsing {
+      animation: resetPulse 0.35s ease-out forwards;
+    }
+
+    @keyframes resetPulse {
+      0%   { transform: scale(1);    box-shadow: 0 6px 24px #2d6a4f55; }
+      40%  { transform: scale(1.18); box-shadow: 0 0 30px #7b2fff99, 0 0 60px #5500cc66; background: linear-gradient(135deg, #7b2fff, #4400bb); }
+      100% { transform: scale(1);    box-shadow: 0 6px 24px #2d6a4f55; }
+    }
+
+    /* ── KAMUI OVERLAY ── */
+    #kamuiCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    #kamuiCanvas.active { opacity: 1; }
+
+    #gameScreen.kamui-out {
+      animation: kamuiSuck 1.1s cubic-bezier(0.6, 0, 1, 0.8) forwards;
+    }
+
+    #gameScreen.kamui-in {
+      animation: kamuiReturn 0.7s cubic-bezier(0, 0.8, 0.4, 1) forwards;
+    }
+
+    @keyframes kamuiSuck {
+      0%   { transform: scale(1)    rotate(0deg);   opacity: 1; filter: blur(0px); }
+      60%  { transform: scale(0.55) rotate(180deg); opacity: 0.7; filter: blur(2px); }
+      100% { transform: scale(0)    rotate(360deg); opacity: 0;   filter: blur(8px); }
+    }
+
+    @keyframes kamuiReturn {
+      0%   { transform: scale(0)   rotate(-360deg); opacity: 0;   filter: blur(8px); }
+      60%  { transform: scale(1.07) rotate(-15deg); opacity: 0.9; filter: blur(1px); }
+      100% { transform: scale(1)   rotate(0deg);   opacity: 1;   filter: blur(0px); }
+    }
 
     /* ── STATS ── */
     .stats {
@@ -427,6 +469,9 @@
     </div>
   </div>
 
+  <!-- KAMUI CANVAS -->
+  <canvas id="kamuiCanvas"></canvas>
+
   <!-- WELCOME BADGE -->
   <div class="welcome-badge" id="welcomeBadge" style="display:none"></div>
 
@@ -548,11 +593,89 @@
     }
 
     function resetGame() {
-      heads = 0; tails = 0; history = [];
-      const coin = document.getElementById('coin');
-      coin.classList.remove('flipping', 'show-tails');
-      document.getElementById('resultBadge').classList.remove('visible');
-      updateUI();
+      const btn = document.getElementById('resetBtn');
+      const game = document.getElementById('gameScreen');
+      if (btn.classList.contains('pulsing') || game.classList.contains('kamui-out')) return;
+
+      // 1 — button pulse
+      btn.classList.add('pulsing');
+      setTimeout(() => btn.classList.remove('pulsing'), 350);
+
+      // 2 — suck game out
+      game.classList.add('kamui-out');
+      startKamui();
+
+      setTimeout(() => {
+        // 3 — reset data while invisible
+        heads = 0; tails = 0; history = [];
+        const coin = document.getElementById('coin');
+        coin.classList.remove('flipping', 'show-tails');
+        document.getElementById('resultBadge').classList.remove('visible');
+        updateUI();
+
+        game.classList.remove('kamui-out');
+        game.classList.add('kamui-in');
+        stopKamui();
+
+        // 4 — return animation done
+        setTimeout(() => game.classList.remove('kamui-in'), 700);
+      }, 1800);
+    }
+
+    // ── KAMUI CANVAS VORTEX ──
+    let kamuiRAF = null;
+    function startKamui() {
+      const canvas = document.getElementById('kamuiCanvas');
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.classList.add('active');
+      const ctx = canvas.getContext('2d');
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      let t = 0;
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const rings = 9;
+        for (let r = 0; r < rings; r++) {
+          const progress = t * 0.018 + r * 0.18;
+          const radius   = Math.max(0, 320 - r * 32 - (t * 1.4));
+          const alpha    = Math.min(1, (0.55 - r * 0.045) * (t / 30));
+          if (radius <= 0 || alpha <= 0) continue;
+
+          ctx.beginPath();
+          for (let a = 0; a <= Math.PI * 2; a += 0.04) {
+            const spiral = radius + Math.sin(a * 6 + progress) * (18 - r * 1.8);
+            const x = cx + Math.cos(a + progress * 0.6) * spiral;
+            const y = cy + Math.sin(a + progress * 0.6) * spiral;
+            a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = `rgba(${140 + r * 8}, ${60 - r * 4}, ${255 - r * 10}, ${alpha})`;
+          ctx.lineWidth = 2.5 - r * 0.18;
+          ctx.stroke();
+        }
+
+        // center flash dot
+        const dotR = Math.min(28, t * 0.3);
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, dotR);
+        grad.addColorStop(0, `rgba(220,160,255,${Math.min(0.9, t * 0.015)})`);
+        grad.addColorStop(1, 'rgba(100,0,200,0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        t++;
+        kamuiRAF = requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    function stopKamui() {
+      cancelAnimationFrame(kamuiRAF);
+      const canvas = document.getElementById('kamuiCanvas');
+      canvas.classList.remove('active');
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     }
 
     function updateUI() {
