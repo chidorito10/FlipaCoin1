@@ -258,17 +258,32 @@
 
     #flipBtn.holding {
       background: linear-gradient(135deg, #ff7c2a, #e94530);
-      box-shadow:
-        0 0 10px #ff7c2a99,
-        0 0 24px #ff5c1a88,
-        0 0 50px #ff3d0055;
       animation: saberPulse 0.65s ease-in-out infinite;
+      position: relative;
+      overflow: visible;
     }
 
     @keyframes saberPulse {
-      0%   { box-shadow: 0 0 10px #ff7c2aaa, 0 0 28px #ff5c1a88, 0 0 55px #ff3d0055, 0 0 80px #ff200022; }
-      50%  { box-shadow: 0 0 18px #ff9944cc, 0 0 45px #ff6622aa, 0 0 80px #ff440077, 0 0 120px #ff220044; }
-      100% { box-shadow: 0 0 10px #ff7c2aaa, 0 0 28px #ff5c1a88, 0 0 55px #ff3d0055, 0 0 80px #ff200022; }
+      0%   { box-shadow: 0 0 14px #ff8833cc, 0 0 32px #ff5c1aaa, 0 0 60px #ff3d0077, 0 0 90px #ff220044; }
+      50%  { box-shadow: 0 0 22px #ffaa55ff, 0 0 50px #ff6622cc, 0 0 90px #ff4400aa, 0 0 130px #ff220066; }
+      100% { box-shadow: 0 0 14px #ff8833cc, 0 0 32px #ff5c1aaa, 0 0 60px #ff3d0077, 0 0 90px #ff220044; }
+    }
+
+    #flipBtn.holding::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50px;
+      border: 2.5px solid #ff9944dd;
+      box-shadow: 0 0 10px #ff7733bb, 0 0 22px #ff550088;
+      animation: ringPulse 0.65s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes ringPulse {
+      0%   { inset: -6px;  opacity: 0.9; border-color: #ff9944dd; box-shadow: 0 0 10px #ff7733bb, 0 0 22px #ff550088; }
+      50%  { inset: -16px; opacity: 1;   border-color: #ffbb66ff; box-shadow: 0 0 18px #ffaa44ff, 0 0 40px #ff6600bb; }
+      100% { inset: -6px;  opacity: 0.9; border-color: #ff9944dd; box-shadow: 0 0 10px #ff7733bb, 0 0 22px #ff550088; }
     }
 
     #resetBtn {
