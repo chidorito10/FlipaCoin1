@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Coin Flip Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -453,6 +455,86 @@
       background: #ffffff0a;
       border-color: #ffffff18;
     }
+
+    /* ══════════════════════════════════════
+       ATLA UNIVERSE THEME
+    ══════════════════════════════════════ */
+    body.atla {
+      background: linear-gradient(180deg,
+        #87CEEB 0%, #aadde8 18%, #c8e8a0 42%,
+        #72b040 62%, #4a8828 80%, #2d6016 100%);
+    }
+    body.atla h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.9rem;
+      color: #7a3a08;
+      text-shadow: 1px 2px 6px rgba(0,0,0,0.35), 0 0 18px rgba(212,168,67,0.5);
+    }
+    body.atla .subtitle { color: #4a2a0a; }
+    body.atla .stat-box  { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); }
+    body.atla .stat-value.heads-color { color: #1e6faa; }
+    body.atla .stat-value.tails-color { color: #bb1f00; }
+    body.atla .stat-value.total-color { color: #357a25; }
+    body.atla .pct-labels  { color: #3d2010; }
+    body.atla .pct-bar-bg  { background: rgba(0,0,0,0.18); }
+    body.atla .pct-bar-fill{ background: linear-gradient(90deg,#2980B9,#4A8A3A); }
+    body.atla .history-title { color: #4a2a0a; }
+    body.atla .welcome-badge { color: #7a3a08; border-color: rgba(139,69,19,0.4); background: rgba(255,255,255,0.15); }
+
+    /* ATLA coin face canvas */
+    #atlaFace {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border-radius: 50%; display: none;
+    }
+
+    /* Universe switcher panel */
+    #universeSwitcher {
+      position: fixed; right: 16px; top: 50%;
+      transform: translateY(-50%);
+      flex-direction: column; gap: 8px; z-index: 100;
+    }
+    .uni-label { font-size: 0.58rem; color: #888; text-align: center; letter-spacing: 1px; margin-bottom: 2px; }
+    .uni-btn {
+      padding: 9px 12px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05); color: #aaa;
+      font-size: 0.7rem; font-weight: 700; cursor: pointer;
+      letter-spacing: 0.5px; transition: all 0.2s; text-align: center;
+    }
+    .uni-btn:hover  { background: rgba(255,255,255,0.12); color: #fff; }
+    .uni-btn:active { transform: scale(0.95); }
+    .uni-btn.active { background: rgba(245,197,24,0.15); border-color: rgba(245,197,24,0.55); color: #f5c518; }
+    body.atla .uni-btn.active { background: rgba(139,69,19,0.22); border-color: rgba(139,69,19,0.7); color: #8B4513; }
+
+    /* ATLA result badge variants */
+    .result-badge.water  { background:linear-gradient(90deg,#2980B9,#1a5a8a); color:#e8f4fd; box-shadow:0 4px 20px #2980B966; }
+    .result-badge.air    { background:linear-gradient(90deg,#C8A45A,#8B6520); color:#fff8e8; box-shadow:0 4px 20px #C8A45A77; }
+    .result-badge.earth  { background:linear-gradient(90deg,#4A8A3A,#2d5a22); color:#d4f4c4; box-shadow:0 4px 20px #4A8A3A66; }
+    .result-badge.fire   { background:linear-gradient(90deg,#CC2200,#8B1500); color:#ffe4d4; box-shadow:0 4px 20px #CC220066; }
+    .result-badge.avatar { background:linear-gradient(90deg,#D4A843,#8B6010); color:#fff;    box-shadow:0 4px 30px #D4A84388; }
+
+    /* ATLA history chips */
+    .history-chip.water  { background:linear-gradient(135deg,#4A90D9,#1a5080); color:#fff;    border-color:#4A90D9; }
+    .history-chip.air    { background:linear-gradient(135deg,#E8C878,#A07840); color:#3d2800; border-color:#C8A860; }
+    .history-chip.earth  { background:linear-gradient(135deg,#5A9A4A,#2d5a22); color:#fff;    border-color:#4A8A3A; }
+    .history-chip.fire   { background:linear-gradient(135deg,#DD3311,#7b1000); color:#fff;    border-color:#CC2200; }
+    .history-chip.avatar { background:linear-gradient(135deg,#D4A843,#8B6010); color:#fff;    border-color:#D4A843; }
+
+    /* Element particle / avatar animation canvas */
+    #elementCanvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 300; opacity: 0;
+    }
+    #elementCanvas.active { opacity: 1; }
+
+    /* Avatar page flash */
+    @keyframes avatarFlash {
+      0%  { opacity: 0; }  30% { opacity: 1; }  100% { opacity: 0; }
+    }
+    #avatarFlashEl { position:fixed;inset:0;pointer-events:none;z-index:290;
+      background:radial-gradient(ellipse at center,rgba(212,168,67,0.45) 0%,rgba(212,168,67,0) 70%);
+      animation: none; }
+    #avatarFlashEl.on { animation: avatarFlash 1.8s ease-out forwards; }
   </style>
 </head>
 <body>
@@ -472,6 +554,19 @@
   <!-- KAMUI CANVAS -->
   <canvas id="kamuiCanvas"></canvas>
 
+  <!-- ELEMENT PARTICLE CANVAS -->
+  <canvas id="elementCanvas"></canvas>
+
+  <!-- AVATAR FLASH OVERLAY -->
+  <div id="avatarFlashEl"></div>
+
+  <!-- UNIVERSE SWITCHER -->
+  <div id="universeSwitcher" style="display:none">
+    <div class="uni-label">UNIVERSE</div>
+    <button class="uni-btn active" id="btnBasic" onclick="setUniverse('basic')">⚔️ Basic</button>
+    <button class="uni-btn" id="btnAtla" onclick="setUniverse('atla')">🌊 Avatar</button>
+  </div>
+
   <!-- WELCOME BADGE -->
   <div class="welcome-badge" id="welcomeBadge" style="display:none"></div>
 
@@ -483,7 +578,10 @@
 
   <div class="coin-wrapper">
     <div class="coin" id="coin">
-      <div class="coin-face coin-heads">H</div>
+      <div class="coin-face coin-heads">
+        <span id="coinHeadText">H</span>
+        <canvas id="atlaFace" width="168" height="168"></canvas>
+      </div>
       <div class="coin-face coin-tails">T</div>
     </div>
   </div>
@@ -499,7 +597,7 @@
 
   <div class="stats">
     <div class="stat-box">
-      <div class="stat-label">HEADS</div>
+      <div class="stat-label" id="labelLeft">HEADS</div>
       <div class="stat-value heads-color" id="headsCount">0</div>
     </div>
     <div class="stat-box">
@@ -507,7 +605,7 @@
       <div class="stat-value total-color" id="totalCount">0</div>
     </div>
     <div class="stat-box">
-      <div class="stat-label">TAILS</div>
+      <div class="stat-label" id="labelRight">TAILS</div>
       <div class="stat-value tails-color" id="tailsCount">0</div>
     </div>
   </div>
@@ -548,6 +646,7 @@
       const badge = document.getElementById('welcomeBadge');
       badge.style.display = 'block';
       badge.textContent = '👤 ' + currentUser;
+      document.getElementById('universeSwitcher').style.display = 'flex';
     }
 
     // Allow pressing Enter to log in
@@ -558,6 +657,7 @@
     });
 
     function flipCoin() {
+      if (universe === 'atla') { atlaFlipCoin(); return; }
       if (flipping) return;
       flipping = true;
 
@@ -608,6 +708,8 @@
       setTimeout(() => {
         // 3 — reset data while invisible
         heads = 0; tails = 0; history = [];
+        atlaFlips = {water:0,air:0,earth:0,fire:0,avatar:0};
+        atlaHistory = [];
         const coin = document.getElementById('coin');
         coin.classList.remove('flipping', 'show-tails');
         document.getElementById('resultBadge').classList.remove('visible');
@@ -836,26 +938,59 @@
     }
 
     function updateUI() {
+      if (universe === 'atla') { updateAtlaUI(); return; }
+
       const total = heads + tails;
       document.getElementById('headsCount').textContent = heads;
       document.getElementById('tailsCount').textContent = tails;
       document.getElementById('totalCount').textContent = total;
+      document.getElementById('labelLeft').textContent  = 'HEADS';
+      document.getElementById('labelRight').textContent = 'TAILS';
 
       const hPct = total ? Math.round((heads / total) * 100) : 0;
-      const tPct = total ? 100 - hPct : 0;
       document.getElementById('headsPct').textContent = `Heads — ${hPct}%`;
-      document.getElementById('tailsPct').textContent = `Tails — ${tPct}%`;
+      document.getElementById('tailsPct').textContent = `Tails — ${100 - hPct}%`;
       document.getElementById('pctBar').style.width = (total ? hPct : 50) + '%';
 
       const list = document.getElementById('historyList');
       list.innerHTML = '';
-      const slots = 5;
-      for (let i = 0; i < slots; i++) {
+      for (let i = 0; i < 5; i++) {
         const chip = document.createElement('div');
-        const idx = history.length - slots + i;
+        const idx  = history.length - 5 + i;
         if (idx >= 0) {
-          chip.className = 'history-chip ' + (history[idx] === 'H' ? 'heads' : 'tails');
+          chip.className   = 'history-chip ' + (history[idx] === 'H' ? 'heads' : 'tails');
           chip.textContent = history[idx] === 'H' ? 'H' : 'T';
+        } else {
+          chip.className = 'history-chip empty';
+        }
+        list.appendChild(chip);
+      }
+    }
+
+    function updateAtlaUI() {
+      const total   = Object.values(atlaFlips).reduce((a,b)=>a+b, 0);
+      const waPct   = total ? Math.round(((atlaFlips.water + atlaFlips.air) / total) * 100) : 0;
+      const efCount = atlaFlips.earth + atlaFlips.fire;
+      const waCount = atlaFlips.water + atlaFlips.air;
+
+      document.getElementById('labelLeft').textContent  = 'WATER+AIR';
+      document.getElementById('labelRight').textContent = 'EARTH+FIRE';
+      document.getElementById('headsCount').textContent = waCount;
+      document.getElementById('tailsCount').textContent = efCount;
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('headsPct').textContent   = `Water+Air — ${waPct}%`;
+      document.getElementById('tailsPct').textContent   = `Earth+Fire — ${100-waPct}%`;
+      document.getElementById('pctBar').style.width     = (total ? waPct : 50) + '%';
+
+      const LABELS = {water:'W',air:'A',earth:'E',fire:'F',avatar:'☯'};
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const chip = document.createElement('div');
+        const idx  = atlaHistory.length - 5 + i;
+        if (idx >= 0) {
+          chip.className   = 'history-chip ' + atlaHistory[idx];
+          chip.textContent = LABELS[atlaHistory[idx]];
         } else {
           chip.className = 'history-chip empty';
         }
@@ -892,6 +1027,376 @@
     flipBtn.addEventListener('mouseleave', stopHold);
     flipBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(); });
     flipBtn.addEventListener('touchend', stopHold);
+
+    /* ═══════════════════════════════════════════════════
+       ATLA UNIVERSE
+    ═══════════════════════════════════════════════════ */
+    let universe   = 'basic';
+    let atlaFlips  = {water:0, air:0, earth:0, fire:0, avatar:0};
+    let atlaHistory = [];
+
+    function setUniverse(u) {
+      universe = u;
+      document.getElementById('btnBasic').classList.toggle('active', u==='basic');
+      document.getElementById('btnAtla').classList.toggle('active',  u==='atla');
+      document.body.classList.toggle('atla', u==='atla');
+
+      const h1  = document.querySelector('#gameScreen h1');
+      const sub = document.querySelector('#gameScreen .subtitle');
+      if (u === 'atla') {
+        h1.textContent  = '⚡ Element Flip';
+        sub.textContent = 'WHICH ELEMENT CALLS YOU?';
+      } else {
+        h1.textContent  = '🪙 Coin Flip';
+        sub.textContent = 'HEADS OR TAILS?';
+      }
+
+      // toggle coin face
+      document.getElementById('coinHeadText').style.display = u==='atla' ? 'none' : '';
+      const af = document.getElementById('atlaFace');
+      af.style.display = u==='atla' ? 'block' : 'none';
+      af.getContext('2d').clearRect(0,0,168,168);
+
+      // reset both
+      heads=0; tails=0; history=[];
+      atlaFlips={water:0,air:0,earth:0,fire:0,avatar:0};
+      atlaHistory=[];
+      document.getElementById('coin').classList.remove('flipping','show-tails');
+      document.getElementById('resultBadge').classList.remove('visible');
+      updateUI();
+    }
+
+    /* ── probabilities ── */
+    function getAtlaResult() {
+      const r = Math.random();
+      if (r < 0.235) return 'water';
+      if (r < 0.470) return 'air';
+      if (r < 0.705) return 'earth';
+      if (r < 0.940) return 'fire';
+      return 'avatar';
+    }
+
+    /* ── ATLA flip ── */
+    function atlaFlipCoin() {
+      if (flipping) return;
+      flipping = true;
+      const coin  = document.getElementById('coin');
+      const btn   = document.getElementById('flipBtn');
+      const badge = document.getElementById('resultBadge');
+      btn.disabled = true;
+      badge.classList.remove('visible');
+
+      const result = getAtlaResult();
+      drawElementCoin(result);
+
+      coin.classList.remove('flipping','show-tails');
+      void coin.offsetWidth;
+      coin.classList.add('flipping');
+
+      setTimeout(() => {
+        coin.classList.remove('flipping');
+        atlaFlips[result]++;
+        atlaHistory.push(result);
+        if (atlaHistory.length > 5) atlaHistory.shift();
+
+        const NAMES = {water:'WATER',air:'AIR',earth:'EARTH',fire:'FIRE',avatar:'AVATAR STATE'};
+        badge.className   = 'result-badge ' + result;
+        badge.textContent = NAMES[result];
+        badge.classList.add('visible');
+
+        if (result === 'avatar') showAvatarAnimation();
+        else showElementParticles(result);
+
+        updateAtlaUI();
+        btn.disabled = false;
+        flipping = false;
+      }, 1250);
+    }
+
+    /* ══ ELEMENT COIN DRAWING ══ */
+    function drawElementCoin(element) {
+      const c = document.getElementById('atlaFace');
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0,0,168,168);
+      const cx=84, cy=84, r=80;
+      ({water:drawWater,air:drawAir,earth:drawEarth,fire:drawFire,avatar:drawAvatar}[element])(ctx,cx,cy,r);
+    }
+
+    function drawWater(ctx,cx,cy,r) {
+      // Katara necklace — deep blue with carved ocean waves
+      const bg = ctx.createRadialGradient(cx-r*.15,cy-r*.15,0,cx,cy,r);
+      bg.addColorStop(0,'#6bbde8'); bg.addColorStop(.7,'#1e6db0'); bg.addColorStop(1,'#0d3a62');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=bg; ctx.fill();
+      // outer ring
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='#08203c'; ctx.lineWidth=r*.09; ctx.stroke();
+      // inner ring
+      ctx.beginPath(); ctx.arc(cx,cy,r*.78,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=r*.03; ctx.stroke();
+      // 3 wave arcs
+      ctx.strokeStyle='rgba(255,255,255,0.82)'; ctx.lineWidth=r*.055; ctx.lineCap='round';
+      for (let i=0;i<3;i++) {
+        const y0=cy+(i-1)*r*.28;
+        ctx.beginPath();
+        ctx.moveTo(cx-r*.52,y0);
+        ctx.bezierCurveTo(cx-r*.18,y0-r*.17, cx+r*.18,y0+r*.17, cx+r*.52,y0);
+        ctx.stroke();
+      }
+      // necklace bead dots
+      ctx.fillStyle='rgba(255,255,255,0.35)';
+      for (let i=0;i<14;i++) {
+        const a=(i/14)*Math.PI*2;
+        ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r*.86, cy+Math.sin(a)*r*.86, r*.038,0,Math.PI*2); ctx.fill();
+      }
+    }
+
+    function drawAir(ctx,cx,cy,r) {
+      // Gyatso necklace — carved wood with Air Nomad triskelion
+      const bg = ctx.createRadialGradient(cx-r*.1,cy-r*.1,0,cx,cy,r);
+      bg.addColorStop(0,'#d4b483'); bg.addColorStop(.7,'#b08840'); bg.addColorStop(1,'#7a5a1a');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=bg; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='#4a2e08'; ctx.lineWidth=r*.09; ctx.stroke();
+      // inner rope ring
+      ctx.beginPath(); ctx.arc(cx,cy,r*.76,0,Math.PI*2);
+      ctx.strokeStyle='#5a3810'; ctx.lineWidth=r*.035; ctx.stroke();
+      // Air Nomad symbol — 3 circles arranged in triskelion
+      ctx.strokeStyle='#3a2005'; ctx.lineWidth=r*.062; ctx.lineCap='round';
+      for (let i=0;i<3;i++) {
+        const a=(i/3)*Math.PI*2 - Math.PI/2;
+        const sx=cx+Math.cos(a)*r*.28, sy=cy+Math.sin(a)*r*.28;
+        ctx.beginPath(); ctx.arc(sx,sy,r*.22,a+Math.PI*.5,a+Math.PI*2.1); ctx.stroke();
+      }
+      // center dot
+      ctx.beginPath(); ctx.arc(cx,cy,r*.065,0,Math.PI*2);
+      ctx.fillStyle='#3a2005'; ctx.fill();
+      // bead ring
+      ctx.fillStyle='rgba(80,45,8,0.4)';
+      for (let i=0;i<12;i++) {
+        const a=(i/12)*Math.PI*2;
+        ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r*.88,cy+Math.sin(a)*r*.88,r*.04,0,Math.PI*2); ctx.fill();
+      }
+    }
+
+    function drawEarth(ctx,cx,cy,r) {
+      // Earth Kingdom — green with concentric square emblem
+      const bg=ctx.createRadialGradient(cx,cy-r*.1,0,cx,cy,r);
+      bg.addColorStop(0,'#5da050'); bg.addColorStop(.6,'#367028'); bg.addColorStop(1,'#1a3d10');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=bg; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='#000'; ctx.lineWidth=r*.11; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,r*.76,0,Math.PI*2);
+      ctx.strokeStyle='#000'; ctx.lineWidth=r*.045; ctx.stroke();
+      // outer square
+      const s1=r*.44;
+      ctx.beginPath(); ctx.rect(cx-s1,cy-s1,s1*2,s1*2);
+      ctx.fillStyle='#000'; ctx.fill();
+      // inner square (green cutout)
+      const s2=s1*.52;
+      ctx.beginPath(); ctx.rect(cx-s2,cy-s2,s2*2,s2*2);
+      ctx.fillStyle='#367028'; ctx.fill();
+      ctx.strokeStyle='#000'; ctx.lineWidth=r*.025; ctx.stroke();
+    }
+
+    function drawFire(ctx,cx,cy,r) {
+      // Fire Nation emblem — red with black flame
+      const bg=ctx.createRadialGradient(cx,cy-r*.1,0,cx,cy,r);
+      bg.addColorStop(0,'#e03010'); bg.addColorStop(.6,'#a81800'); bg.addColorStop(1,'#4a0000');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=bg; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='#000'; ctx.lineWidth=r*.11; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,r*.76,0,Math.PI*2);
+      ctx.strokeStyle='#000'; ctx.lineWidth=r*.045; ctx.stroke();
+      // flame body
+      ctx.fillStyle='#000';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy+r*.52);
+      ctx.bezierCurveTo(cx-r*.34,cy+r*.30, cx-r*.44,cy+r*.04, cx-r*.28,cy-r*.16);
+      ctx.bezierCurveTo(cx-r*.16,cy-r*.32, cx-r*.04,cy-r*.22, cx,     cy-r*.50);
+      ctx.bezierCurveTo(cx+r*.04,cy-r*.22, cx+r*.16,cy-r*.32, cx+r*.28,cy-r*.16);
+      ctx.bezierCurveTo(cx+r*.44,cy+r*.04, cx+r*.34,cy+r*.30, cx,     cy+r*.52);
+      ctx.fill();
+      // inner flame cutout (red)
+      const ig=ctx.createRadialGradient(cx,cy,0,cx,cy,r*.48);
+      ig.addColorStop(0,'#e03010'); ig.addColorStop(1,'#a81800');
+      ctx.fillStyle=ig;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy+r*.30);
+      ctx.bezierCurveTo(cx-r*.18,cy+r*.15, cx-r*.24,cy-r*.02, cx-r*.14,cy-r*.18);
+      ctx.bezierCurveTo(cx-r*.06,cy-r*.30, cx,      cy-r*.18, cx,      cy-r*.38);
+      ctx.bezierCurveTo(cx,      cy-r*.18, cx+r*.06,cy-r*.30, cx+r*.14,cy-r*.18);
+      ctx.bezierCurveTo(cx+r*.24,cy-r*.02, cx+r*.18,cy+r*.15, cx,      cy+r*.30);
+      ctx.fill();
+    }
+
+    function drawAvatar(ctx,cx,cy,r) {
+      // Aang's head — warm tan with blue forehead arrow
+      const bg=ctx.createRadialGradient(cx-r*.1,cy-r*.1,0,cx,cy,r);
+      bg.addColorStop(0,'#e8c89a'); bg.addColorStop(.7,'#c8a070'); bg.addColorStop(1,'#9a7040');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=bg; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='#7a5020'; ctx.lineWidth=r*.07; ctx.stroke();
+      // golden shimmer ring
+      ctx.beginPath(); ctx.arc(cx,cy,r*.82,0,Math.PI*2);
+      ctx.strokeStyle='rgba(212,168,67,0.5)'; ctx.lineWidth=r*.025; ctx.stroke();
+
+      // Aang's arrow — blue shaft + arrowhead pointing down + two crown wings
+      const blue='#4A90D9', blueDark='#2060A9';
+      const sw=r*.13; // shaft width
+
+      // shaft
+      ctx.beginPath();
+      ctx.roundRect(cx-sw/2, cy-r*.60, sw, r*.82, sw/2);
+      ctx.fillStyle=blue; ctx.fill();
+      ctx.strokeStyle=blueDark; ctx.lineWidth=r*.022; ctx.stroke();
+
+      // arrowhead (pointing down)
+      ctx.beginPath();
+      ctx.moveTo(cx,       cy+r*.46);
+      ctx.lineTo(cx-r*.30, cy+r*.16);
+      ctx.lineTo(cx+r*.30, cy+r*.16);
+      ctx.closePath();
+      ctx.fillStyle=blue; ctx.fill();
+      ctx.strokeStyle=blueDark; ctx.lineWidth=r*.022; ctx.stroke();
+
+      // left crown wing
+      ctx.beginPath();
+      ctx.moveTo(cx-sw/2, cy-r*.42);
+      ctx.bezierCurveTo(cx-r*.26,cy-r*.50, cx-r*.52,cy-r*.36, cx-r*.56,cy-r*.18);
+      ctx.strokeStyle=blue; ctx.lineWidth=r*.065; ctx.lineCap='round'; ctx.stroke();
+      // right crown wing
+      ctx.beginPath();
+      ctx.moveTo(cx+sw/2, cy-r*.42);
+      ctx.bezierCurveTo(cx+r*.26,cy-r*.50, cx+r*.52,cy-r*.36, cx+r*.56,cy-r*.18);
+      ctx.stroke();
+    }
+
+    /* ══ ELEMENT PARTICLE ANIMATIONS ══ */
+    let elRAF = null;
+
+    function showElementParticles(element) {
+      cancelAnimationFrame(elRAF);
+      const canvas = document.getElementById('elementCanvas');
+      canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+      canvas.classList.add('active');
+      const ctx=canvas.getContext('2d');
+      const cx=canvas.width/2, cy=canvas.height/2;
+
+      const CFG = {
+        water: { cols:['#4A90D9','#1e6db0','#90c8f0'], shape:'drop',  vy:-1.5 },
+        air:   { cols:['#e8d8a8','#c8b070','#f0e8d0'], shape:'circle',vy:-2   },
+        earth: { cols:['#5A9A4A','#3a6a2a','#8ac870'], shape:'rect',  vy:-2.5 },
+        fire:  { cols:['#ff5533','#dd2200','#ff9933'], shape:'flame', vy:-3   },
+      };
+      const cfg = CFG[element];
+
+      const particles = Array.from({length:28},()=>({
+        x: cx+(Math.random()-.5)*120,
+        y: cy+(Math.random()-.5)*120,
+        vx:(Math.random()-.5)*3.5,
+        vy:cfg.vy - Math.random()*1.5,
+        r: 5+Math.random()*9,
+        col:cfg.cols[Math.floor(Math.random()*cfg.cols.length)],
+        life:1, decay:.022+Math.random()*.018,
+        rot: Math.random()*Math.PI*2,
+      }));
+
+      function frame() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        let alive=false;
+        for (const p of particles) {
+          if (p.life<=0) continue; alive=true;
+          ctx.save(); ctx.globalAlpha=p.life;
+          ctx.fillStyle=p.col; ctx.strokeStyle=p.col;
+          ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+          if (cfg.shape==='drop') {
+            ctx.beginPath(); ctx.ellipse(0,0,p.r*.6,p.r,0,0,Math.PI*2); ctx.fill();
+          } else if (cfg.shape==='rect') {
+            ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r);
+          } else if (cfg.shape==='flame') {
+            ctx.beginPath();
+            ctx.moveTo(0,-p.r*1.1);
+            ctx.bezierCurveTo(p.r*.7,0,p.r*.5,p.r*.7,0,p.r*.5);
+            ctx.bezierCurveTo(-p.r*.5,p.r*.7,-p.r*.7,0,0,-p.r*1.1);
+            ctx.fill();
+          } else {
+            ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill();
+          }
+          ctx.restore();
+          p.x+=p.vx; p.y+=p.vy;
+          if (element==='water') p.vy+=.12;
+          if (element==='air')  { p.vx*=.97; p.vy*=.97; }
+          if (element==='fire') p.vy-=.08;
+          p.rot+=.04; p.r*=.98; p.life-=p.decay;
+        }
+        if (alive) elRAF=requestAnimationFrame(frame);
+        else canvas.classList.remove('active');
+      }
+      frame();
+    }
+
+    function showAvatarAnimation() {
+      cancelAnimationFrame(elRAF);
+      // page flash
+      const flash=document.getElementById('avatarFlashEl');
+      flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
+
+      const canvas=document.getElementById('elementCanvas');
+      canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+      canvas.classList.add('active');
+      const ctx=canvas.getContext('2d');
+      const cx=canvas.width/2, cy=canvas.height/2;
+
+      // 4 element streams converging from 4 sides
+      const STREAMS=[
+        {col:'#4A90D9',ex:0,       ey:cy,    dx:1,  dy:0  }, // water from left
+        {col:'#CC2200',ex:canvas.width,ey:cy, dx:-1, dy:0  }, // fire from right
+        {col:'#5A9A4A',ex:cx,      ey:canvas.height,dx:0, dy:-1}, // earth from bottom
+        {col:'#E8C860',ex:cx,      ey:0,     dx:0,  dy:1  }, // air from top
+      ];
+
+      const particles=[];
+      for (const s of STREAMS) {
+        for (let i=0;i<30;i++) {
+          const dist=150+Math.random()*250;
+          particles.push({
+            x: s.ex + s.dx*dist + (Math.random()-.5)*80,
+            y: s.ey + s.dy*dist + (Math.random()-.5)*80,
+            vx: -s.dx*(2+Math.random()*2.5),
+            vy: -s.dy*(2+Math.random()*2.5),
+            r:  6+Math.random()*12,
+            col:s.col, life:1, decay:.012+Math.random()*.01,
+          });
+        }
+      }
+
+      let t=0; const dur=130;
+      function frame() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        // central golden pulse
+        const prog=t/dur;
+        const glowR=Math.sin(prog*Math.PI)*160;
+        const glow=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(1,glowR));
+        glow.addColorStop(0,`rgba(212,168,67,${.55*Math.sin(prog*Math.PI)})`);
+        glow.addColorStop(1,'rgba(212,168,67,0)');
+        ctx.beginPath(); ctx.arc(cx,cy,Math.max(1,glowR),0,Math.PI*2);
+        ctx.fillStyle=glow; ctx.fill();
+
+        for (const p of particles) {
+          if (p.life<=0) continue;
+          ctx.save();
+          ctx.globalAlpha=p.life*(1-prog*.6);
+          ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+          ctx.fillStyle=p.col; ctx.fill();
+          ctx.restore();
+          p.x+=p.vx; p.y+=p.vy; p.vx*=.97; p.vy*=.97; p.life-=p.decay;
+        }
+        t++;
+        if (t<dur) elRAF=requestAnimationFrame(frame);
+        else canvas.classList.remove('active');
+      }
+      frame();
+    }
   </script>
 </body>
 </html>
