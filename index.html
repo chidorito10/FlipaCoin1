@@ -624,6 +624,117 @@
 
     // ── KAMUI CANVAS VORTEX ──
     let kamuiRAF = null;
+
+    function drawSharingan(ctx, cx, cy, alpha, angle) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.globalAlpha = alpha;
+
+      const R = 62;
+
+      // outer glow halo
+      const halo = ctx.createRadialGradient(0, 0, R * 0.5, 0, 0, R * 2.2);
+      halo.addColorStop(0, 'rgba(160,0,0,0.45)');
+      halo.addColorStop(0.5, 'rgba(80,0,0,0.2)');
+      halo.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(0, 0, R * 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = halo; ctx.fill();
+
+      // iris
+      const iris = ctx.createRadialGradient(-R*0.12, -R*0.12, 0, 0, 0, R);
+      iris.addColorStop(0,   '#d42000');
+      iris.addColorStop(0.55,'#8b0000');
+      iris.addColorStop(1,   '#2a0000');
+      ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+      ctx.fillStyle = iris; ctx.fill();
+
+      // thin iris rim
+      ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(60,0,0,0.8)'; ctx.lineWidth = 3; ctx.stroke();
+
+      // Kakashi Mangekyou — 3 curved blades (triskelion)
+      ctx.fillStyle = '#0d0000';
+      for (let i = 0; i < 3; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI * 2) / 3);
+        ctx.beginPath();
+        ctx.moveTo(0, R * 0.08);
+        ctx.bezierCurveTo( R*0.22, -R*0.05,  R*0.72,  R*0.05,  R*0.68,  R*0.42);
+        ctx.bezierCurveTo( R*0.60,  R*0.72,  R*0.12,  R*0.72,  R*0.04,  R*0.55);
+        ctx.bezierCurveTo(-R*0.08,  R*0.35, -R*0.06,  R*0.18,  0,        R*0.08);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // inner circle connecting blades
+      ctx.beginPath(); ctx.arc(0, 0, R * 0.22, 0, Math.PI * 2);
+      ctx.fillStyle = '#0d0000'; ctx.fill();
+
+      // pupil
+      const pupil = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.14);
+      pupil.addColorStop(0, '#1c0000'); pupil.addColorStop(1, '#000');
+      ctx.beginPath(); ctx.arc(0, 0, R * 0.14, 0, Math.PI * 2);
+      ctx.fillStyle = pupil; ctx.fill();
+
+      // highlight glint
+      ctx.beginPath(); ctx.arc(-R*0.18, -R*0.22, R*0.07, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,180,160,0.25)'; ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawVortex(ctx, cx, cy, t, vortexProgress) {
+      const arms = 6;
+      for (let arm = 0; arm < arms; arm++) {
+        const baseAngle = (arm / arms) * Math.PI * 2;
+        const layers = 3;
+        for (let l = 0; l < layers; l++) {
+          ctx.beginPath();
+          let first = true;
+          const maxTurns  = 3.2;
+          const maxRadius = 520 - vortexProgress * 180;
+          for (let a = 0.01; a < Math.PI * 2 * maxTurns; a += 0.06) {
+            const decay = Math.exp(-a * 0.22);
+            const r = maxRadius * decay * (1 - vortexProgress * 0.55);
+            if (r < 2) break;
+            const wobble  = Math.sin(a * 3 + t * 0.08 + l) * (12 - l * 3);
+            const angle   = a + baseAngle + vortexProgress * Math.PI * 2.5 + l * 0.25;
+            const x = cx + Math.cos(angle) * (r + wobble);
+            const y = cy + Math.sin(angle) * (r + wobble);
+            first ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            first = false;
+          }
+          const palette = [
+            `rgba(170,18,2,${0.88 - l*0.18})`,
+            `rgba(210,60,8,${0.72 - l*0.16})`,
+            `rgba(60,4,0,${0.80  - l*0.18})`,
+          ];
+          ctx.strokeStyle = palette[l % 3];
+          ctx.lineWidth   = 30 - l * 7;
+          ctx.lineCap     = 'round';
+          ctx.lineJoin    = 'round';
+          ctx.stroke();
+        }
+      }
+
+      // dark center void
+      const void_ = ctx.createRadialGradient(cx, cy, 0, cx, cy, 60);
+      void_.addColorStop(0,   'rgba(0,0,0,0.92)');
+      void_.addColorStop(0.6, 'rgba(10,0,0,0.5)');
+      void_.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+      ctx.fillStyle = void_; ctx.fill();
+
+      // center ember glow
+      const ember = ctx.createRadialGradient(cx, cy, 0, cx, cy, 22);
+      ember.addColorStop(0,   `rgba(255,110,40,${0.85 + Math.sin(t*0.25)*0.1})`);
+      ember.addColorStop(0.5, 'rgba(180,20,0,0.5)');
+      ember.addColorStop(1,   'rgba(80,0,0,0)');
+      ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = ember; ctx.fill();
+    }
+
     function startKamui() {
       const canvas = document.getElementById('kamuiCanvas');
       canvas.width  = window.innerWidth;
@@ -632,38 +743,29 @@
       const ctx = canvas.getContext('2d');
       const cx = canvas.width / 2, cy = canvas.height / 2;
       let t = 0;
+      const SHARINGAN_END = 52;
+      const VORTEX_START  = 38;
 
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const rings = 9;
-        for (let r = 0; r < rings; r++) {
-          const progress = t * 0.018 + r * 0.18;
-          const radius   = Math.max(0, 320 - r * 32 - (t * 1.4));
-          const alpha    = Math.min(1, (0.55 - r * 0.045) * (t / 30));
-          if (radius <= 0 || alpha <= 0) continue;
 
-          ctx.beginPath();
-          for (let a = 0; a <= Math.PI * 2; a += 0.04) {
-            const spiral = radius + Math.sin(a * 6 + progress) * (18 - r * 1.8);
-            const x = cx + Math.cos(a + progress * 0.6) * spiral;
-            const y = cy + Math.sin(a + progress * 0.6) * spiral;
-            a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-          }
-          ctx.closePath();
-          ctx.strokeStyle = `rgba(${140 + r * 8}, ${60 - r * 4}, ${255 - r * 10}, ${alpha})`;
-          ctx.lineWidth = 2.5 - r * 0.18;
-          ctx.stroke();
+        // sharingan phase
+        if (t < SHARINGAN_END) {
+          const fadeIn  = Math.min(1, t / 18);
+          const fadeOut = t > 36 ? Math.max(0, 1 - (t - 36) / 16) : 1;
+          const alpha   = fadeIn * fadeOut * 0.80;
+          drawSharingan(ctx, cx, cy, alpha, t * 0.035);
         }
 
-        // center flash dot
-        const dotR = Math.min(28, t * 0.3);
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, dotR);
-        grad.addColorStop(0, `rgba(220,160,255,${Math.min(0.9, t * 0.015)})`);
-        grad.addColorStop(1, 'rgba(100,0,200,0)');
-        ctx.beginPath();
-        ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
+        // vortex phase
+        if (t > VORTEX_START) {
+          const vp    = Math.min(1, (t - VORTEX_START) / 72);
+          const alpha = Math.min(1, (t - VORTEX_START) / 18);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          drawVortex(ctx, cx, cy, t, vp);
+          ctx.restore();
+        }
 
         t++;
         kamuiRAF = requestAnimationFrame(draw);
