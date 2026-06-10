@@ -256,6 +256,21 @@
     #flipBtn:hover:not(:disabled) { box-shadow: 0 8px 30px #e9456099; transform: translateY(-2px); }
     #flipBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    #flipBtn.holding {
+      background: linear-gradient(135deg, #ff7c2a, #e94530);
+      box-shadow:
+        0 0 10px #ff7c2a99,
+        0 0 24px #ff5c1a88,
+        0 0 50px #ff3d0055;
+      animation: saberPulse 0.65s ease-in-out infinite;
+    }
+
+    @keyframes saberPulse {
+      0%   { box-shadow: 0 0 10px #ff7c2aaa, 0 0 28px #ff5c1a88, 0 0 55px #ff3d0055, 0 0 80px #ff200022; }
+      50%  { box-shadow: 0 0 18px #ff9944cc, 0 0 45px #ff6622aa, 0 0 80px #ff440077, 0 0 120px #ff220044; }
+      100% { box-shadow: 0 0 10px #ff7c2aaa, 0 0 28px #ff5c1a88, 0 0 55px #ff3d0055, 0 0 80px #ff200022; }
+    }
+
     #resetBtn {
       background: linear-gradient(135deg, #2d6a4f, #1b4332);
       color: #d8f3dc;
@@ -560,6 +575,7 @@
     let holdInterval = null;
 
     function startHold() {
+      flipBtn.classList.add('holding');
       holdTimer = setTimeout(() => {
         holdInterval = setInterval(() => {
           if (!flipping) flipCoin();
@@ -568,6 +584,7 @@
     }
 
     function stopHold() {
+      flipBtn.classList.remove('holding');
       clearTimeout(holdTimer);
       clearInterval(holdInterval);
       holdTimer = null;
