@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coin Flip Game</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      margin-bottom: 6px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px #e94560aa;
+      color: #f5c518;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-bottom: 36px;
+      letter-spacing: 1px;
+    }
+
+    /* ── COIN ── */
+    .coin-wrapper {
+      width: 180px;
+      height: 180px;
+      perspective: 600px;
+      margin-bottom: 32px;
+    }
+
+    .coin {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.1s;
+    }
+
+    .coin.flipping {
+      animation: coinSpin 1.2s ease-out forwards;
+    }
+
+    @keyframes coinSpin {
+      0%   { transform: rotateY(0deg) rotateX(0deg); }
+      20%  { transform: rotateY(360deg) rotateX(20deg); }
+      40%  { transform: rotateY(720deg) rotateX(0deg); }
+      60%  { transform: rotateY(1080deg) rotateX(20deg); }
+      80%  { transform: rotateY(1440deg) rotateX(0deg); }
+      90%  { transform: rotateY(1620deg) rotateX(0deg); }
+      100% { transform: rotateY(1800deg) rotateX(0deg); }
+    }
+
+    .coin-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.6rem;
+      font-weight: 900;
+      border: 6px solid #b8860b;
+      box-shadow: 0 0 30px #f5c51866, inset 0 0 20px #00000044;
+      user-select: none;
+    }
+
+    .coin-heads {
+      background: radial-gradient(circle at 35% 35%, #ffd700, #b8860b 70%);
+      color: #5a3e00;
+    }
+
+    .coin-tails {
+      background: radial-gradient(circle at 35% 35%, #e8e8e8, #888 70%);
+      color: #333;
+      transform: rotateY(180deg);
+    }
+
+    /* show tails face when result is tails */
+    .coin.show-tails {
+      transform: rotateY(180deg);
+    }
+
+    /* ── RESULT INDICATOR ── */
+    .result-indicator {
+      height: 44px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-badge {
+      padding: 8px 28px;
+      border-radius: 50px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .result-badge.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .result-badge.heads {
+      background: linear-gradient(90deg, #f5c518, #ff9800);
+      color: #1a1a2e;
+      box-shadow: 0 4px 20px #f5c51866;
+    }
+
+    .result-badge.tails {
+      background: linear-gradient(90deg, #a8a8a8, #666);
+      color: #fff;
+      box-shadow: 0 4px 20px #ffffff33;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+
+    button {
+      padding: 14px 40px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+
+    button:active { transform: scale(0.96); }
+
+    #flipBtn {
+      background: linear-gradient(135deg, #e94560, #c0392b);
+      color: #fff;
+      box-shadow: 0 6px 24px #e9456066;
+    }
+
+    #flipBtn:hover:not(:disabled) { box-shadow: 0 8px 30px #e9456099; transform: translateY(-2px); }
+    #flipBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #resetBtn {
+      background: linear-gradient(135deg, #2d6a4f, #1b4332);
+      color: #d8f3dc;
+      box-shadow: 0 6px 24px #2d6a4f55;
+    }
+
+    #resetBtn:hover { box-shadow: 0 8px 30px #2d6a4f88; transform: translateY(-2px); }
+
+    /* ── STATS ── */
+    .stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .stat-box {
+      background: #ffffff0d;
+      border: 1px solid #ffffff18;
+      border-radius: 14px;
+      padding: 14px 24px;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #aaa;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-value.heads-color { color: #f5c518; }
+    .stat-value.tails-color { color: #b0b0b0; }
+    .stat-value.total-color { color: #a29bfe; }
+
+    /* ── PERCENTAGE BAR ── */
+    .pct-section {
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 32px;
+    }
+
+    .pct-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+
+    .pct-bar-bg {
+      height: 18px;
+      background: #ffffff15;
+      border-radius: 50px;
+      overflow: hidden;
+    }
+
+    .pct-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f5c518, #ff9800);
+      border-radius: 50px;
+      width: 50%;
+      transition: width 0.5s ease;
+    }
+
+    /* ── HISTORY ── */
+    .history-section {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .history-title {
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: #888;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .history-list {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .history-chip {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border: 3px solid transparent;
+      animation: chipIn 0.35s ease;
+    }
+
+    @keyframes chipIn {
+      from { transform: scale(0) rotate(-180deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+    }
+
+    .history-chip.heads {
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #3d2800;
+      border-color: #f5c518;
+    }
+
+    .history-chip.tails {
+      background: linear-gradient(135deg, #c0c0c0, #696969);
+      color: #1a1a1a;
+      border-color: #aaa;
+    }
+
+    .history-chip.empty {
+      background: #ffffff0a;
+      border-color: #ffffff18;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🪙 Coin Flip</h1>
+  <p class="subtitle">HEADS OR TAILS?</p>
+
+  <div class="coin-wrapper">
+    <div class="coin" id="coin">
+      <div class="coin-face coin-heads">H</div>
+      <div class="coin-face coin-tails">T</div>
+    </div>
+  </div>
+
+  <div class="result-indicator">
+    <div class="result-badge" id="resultBadge">HEADS</div>
+  </div>
+
+  <div class="btn-row">
+    <button id="flipBtn" onclick="flipCoin()">FLIP</button>
+    <button id="resetBtn" onclick="resetGame()">RESET</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="stat-label">HEADS</div>
+      <div class="stat-value heads-color" id="headsCount">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">TOTAL</div>
+      <div class="stat-value total-color" id="totalCount">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">TAILS</div>
+      <div class="stat-value tails-color" id="tailsCount">0</div>
+    </div>
+  </div>
+
+  <div class="pct-section">
+    <div class="pct-labels">
+      <span id="headsPct">Heads — 0%</span>
+      <span id="tailsPct">Tails — 0%</span>
+    </div>
+    <div class="pct-bar-bg">
+      <div class="pct-bar-fill" id="pctBar"></div>
+    </div>
+  </div>
+
+  <div class="history-section">
+    <div class="history-title">LAST 5 RESULTS</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <script>
+    let heads = 0, tails = 0, history = [], flipping = false;
+
+    function flipCoin() {
+      if (flipping) return;
+      flipping = true;
+
+      const coin = document.getElementById('coin');
+      const btn  = document.getElementById('flipBtn');
+      const badge = document.getElementById('resultBadge');
+      btn.disabled = true;
+      badge.classList.remove('visible');
+
+      const isHeads = Math.random() < 0.5;
+
+      coin.classList.remove('flipping', 'show-tails');
+      void coin.offsetWidth; // reflow to restart animation
+
+      coin.classList.add('flipping');
+
+      setTimeout(() => {
+        coin.classList.remove('flipping');
+        if (!isHeads) coin.classList.add('show-tails');
+
+        if (isHeads) heads++; else tails++;
+        history.push(isHeads ? 'H' : 'T');
+        if (history.length > 5) history.shift();
+
+        badge.className = 'result-badge ' + (isHeads ? 'heads' : 'tails');
+        badge.textContent = isHeads ? 'HEADS' : 'TAILS';
+        badge.classList.add('visible');
+
+        updateUI();
+        btn.disabled = false;
+        flipping = false;
+      }, 1250);
+    }
+
+    function resetGame() {
+      heads = 0; tails = 0; history = [];
+      const coin = document.getElementById('coin');
+      coin.classList.remove('flipping', 'show-tails');
+      document.getElementById('resultBadge').classList.remove('visible');
+      updateUI();
+    }
+
+    function updateUI() {
+      const total = heads + tails;
+      document.getElementById('headsCount').textContent = heads;
+      document.getElementById('tailsCount').textContent = tails;
+      document.getElementById('totalCount').textContent = total;
+
+      const hPct = total ? Math.round((heads / total) * 100) : 0;
+      const tPct = total ? 100 - hPct : 0;
+      document.getElementById('headsPct').textContent = `Heads — ${hPct}%`;
+      document.getElementById('tailsPct').textContent = `Tails — ${tPct}%`;
+      document.getElementById('pctBar').style.width = (total ? hPct : 50) + '%';
+
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      const slots = 5;
+      for (let i = 0; i < slots; i++) {
+        const chip = document.createElement('div');
+        const idx = history.length - slots + i;
+        if (idx >= 0) {
+          chip.className = 'history-chip ' + (history[idx] === 'H' ? 'heads' : 'tails');
+          chip.textContent = history[idx] === 'H' ? 'H' : 'T';
+        } else {
+          chip.className = 'history-chip empty';
+        }
+        list.appendChild(chip);
+      }
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
