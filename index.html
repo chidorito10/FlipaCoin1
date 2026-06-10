@@ -625,129 +625,118 @@
     // ── KAMUI CANVAS VORTEX ──
     let kamuiRAF = null;
 
-    // Pre-compute static burst lines so they don't flicker each frame
+    // Pre-compute burst lines once — no per-frame flicker
     const BURST_LINES = (() => {
-      const lines = [];
-      const seed = [0.12,0.87,0.34,0.56,0.78,0.23,0.65,0.43,0.91,0.07,
-                    0.38,0.72,0.19,0.55,0.84,0.29,0.61,0.47,0.93,0.15,
-                    0.68,0.32,0.81,0.04,0.50,0.96,0.25,0.74,0.41,0.63,
-                    0.09,0.88,0.36,0.52,0.77,0.21,0.66,0.44,0.98,0.13,
-                    0.57,0.82,0.28,0.70,0.40,0.95,0.17,0.60,0.35,0.80,
-                    0.03,0.49,0.92,0.26,0.75,0.48,0.10,0.86,0.33,0.58,
-                    0.76,0.22,0.64,0.42,0.99,0.14,0.69,0.37,0.53,0.85,
-                    0.30,0.71,0.45,0.97,0.16,0.61,0.39,0.83,0.06,0.51];
-      const COUNT = 80;
-      for (let i = 0; i < COUNT; i++) {
-        const a   = (i / COUNT) * Math.PI * 2;
-        const s0  = seed[i % seed.length];
-        const s1  = seed[(i + 13) % seed.length];
-        const s2  = seed[(i + 27) % seed.length];
-        lines.push({ a, len: 1.5 + s0 * 2.2, w: 0.4 + s1 * 1.8,
-                     alpha: 0.18 + s2 * 0.42 });
-      }
-      return lines;
+      const s = [0.12,0.87,0.34,0.56,0.78,0.23,0.65,0.43,0.91,0.07,0.38,0.72,0.19,
+                 0.55,0.84,0.29,0.61,0.47,0.93,0.15,0.68,0.32,0.81,0.04,0.50,0.96,
+                 0.25,0.74,0.41,0.63,0.09,0.88,0.36,0.52,0.77,0.21,0.66,0.44,0.98,
+                 0.13,0.57,0.82,0.28,0.70,0.40,0.95,0.17,0.60,0.35,0.80,0.03,0.49,
+                 0.92,0.26,0.75,0.48,0.10,0.86,0.33,0.58,0.76,0.22,0.64,0.42,0.99];
+      return Array.from({length:90}, (_,i) => ({
+        a:     (i/90)*Math.PI*2,
+        len:   1.4 + s[i%s.length]*2.4,
+        w:     0.3 + s[(i+17)%s.length]*2.2,
+        alpha: 0.15 + s[(i+31)%s.length]*0.45,
+      }));
     })();
 
-    function drawSharingan(ctx, cx, cy, alpha, angle) {
+    function drawSharingan(ctx, cx, cy, alpha, spin) {
       ctx.save();
       ctx.translate(cx, cy);
       ctx.globalAlpha = alpha;
 
-      const R = 78;
+      const R = 86;
 
-      // ── Energy burst lines (static, no flicker) ──
-      ctx.save();
+      // ── Red energy burst background ──
       for (const l of BURST_LINES) {
-        const a = l.a + angle * 0.08;
+        const a = l.a + spin * 0.05;
         ctx.beginPath();
-        ctx.moveTo(Math.cos(a) * R * 1.04, Math.sin(a) * R * 1.04);
-        ctx.lineTo(Math.cos(a) * R * l.len, Math.sin(a) * R * l.len);
-        ctx.strokeStyle = `rgba(160,0,0,${l.alpha})`;
-        ctx.lineWidth = l.w;
-        ctx.stroke();
+        ctx.moveTo(Math.cos(a)*R*1.04, Math.sin(a)*R*1.04);
+        ctx.lineTo(Math.cos(a)*R*l.len, Math.sin(a)*R*l.len);
+        ctx.strokeStyle = `rgba(155,0,0,${l.alpha})`;
+        ctx.lineWidth = l.w; ctx.stroke();
       }
-      ctx.restore();
 
-      // ── Red glow halo ──
-      const halo = ctx.createRadialGradient(0, 0, R*0.3, 0, 0, R*2.8);
-      halo.addColorStop(0,   'rgba(220,0,0,0.65)');
-      halo.addColorStop(0.3, 'rgba(150,0,0,0.35)');
+      // ── Outer glow halo ──
+      const halo = ctx.createRadialGradient(0,0,R*0.4, 0,0,R*3.0);
+      halo.addColorStop(0,   'rgba(220,0,0,0.70)');
+      halo.addColorStop(0.35,'rgba(140,0,0,0.32)');
       halo.addColorStop(1,   'rgba(0,0,0,0)');
-      ctx.beginPath(); ctx.arc(0, 0, R*2.8, 0, Math.PI*2);
+      ctx.beginPath(); ctx.arc(0,0,R*3.0,0,Math.PI*2);
       ctx.fillStyle = halo; ctx.fill();
 
-      // ── Iris ──
-      const iris = ctx.createRadialGradient(0, -R*0.08, 0, 0, 0, R);
-      iris.addColorStop(0,   '#e01000');
-      iris.addColorStop(0.55,'#950000');
-      iris.addColorStop(1,   '#180000');
-      ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI*2);
+      // ── Red iris (inside outer ring) ──
+      const iris = ctx.createRadialGradient(0,-R*0.05,0, 0,0,R*0.86);
+      iris.addColorStop(0,   '#e81500');
+      iris.addColorStop(0.6, '#9a0000');
+      iris.addColorStop(1,   '#3a0000');
+      ctx.beginPath(); ctx.arc(0,0,R*0.86,0,Math.PI*2);
       ctx.fillStyle = iris; ctx.fill();
 
-      // ── Outer black ring ──
-      ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI*2);
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 7; ctx.stroke();
+      // ── THICK outer black ring ──
+      ctx.beginPath(); ctx.arc(0,0,R,0,Math.PI*2);
+      ctx.strokeStyle = '#000'; ctx.lineWidth = R*0.28; ctx.stroke();
 
-      // ── Propeller blades (annular sectors, pinwheel offset) ──
+      // ── All inner design rotates together ──
       ctx.save();
-      ctx.rotate(angle);  // spin slowly with animation
+      ctx.rotate(spin - Math.PI/2); // start with one tomoe at top
+
+      const iR = R * 0.64;   // inner ring radius
+      const hR = R * 0.165;  // center hub radius
+
+      // blade arc vs gap arc — must sum to 2π/3
+      const bladeArc = 1.55;                      // ~88.8°
+      const gapArc   = (Math.PI*2/3) - bladeArc; // ~31.2° per tomoe gap
+
+      // ── Fan blades (filled annular sectors) ──
       ctx.fillStyle = '#000';
-
-      const outerR = R * 0.70;
-      const innerR = R * 0.21;
-      const bladeSpan = Math.PI * 0.52;   // ~94° per blade
-      const bladeOff  = -Math.PI * 0.06;  // start a little before center axis
-
       for (let i = 0; i < 3; i++) {
-        const base = (i / 3) * Math.PI * 2 - Math.PI / 2;
-        const a1 = base + bladeOff;
-        const a2 = base + bladeOff + bladeSpan;
+        const a1 = i*(Math.PI*2/3) + gapArc/2;
+        const a2 = a1 + bladeArc;
         ctx.beginPath();
-        ctx.arc(0, 0, outerR, a1, a2);       // outer arc CW
-        ctx.arc(0, 0, innerR, a2, a1, true); // inner arc CCW
+        ctx.arc(0, 0, iR, a1, a2);          // outer arc
+        ctx.arc(0, 0, hR, a2, a1, true);    // inner arc (hub edge)
         ctx.closePath();
         ctx.fill();
       }
-      ctx.restore();
 
-      // ── Inner hub circle ──
-      ctx.beginPath(); ctx.arc(0, 0, R*0.21, 0, Math.PI*2);
+      // ── Inner ring (on top of blades) ──
+      ctx.beginPath(); ctx.arc(0,0,iR,0,Math.PI*2);
+      ctx.strokeStyle = '#000'; ctx.lineWidth = R*0.075; ctx.stroke();
+
+      // ── Center hub ──
+      ctx.beginPath(); ctx.arc(0,0,hR,0,Math.PI*2);
       ctx.fillStyle = '#000'; ctx.fill();
 
-      // ── Tomoe — 3 comma shapes ──
-      // Positioned between blades at 120° intervals, offset 60° from blades
+      // ── Tomoe — at gap centers (0°, 120°, 240°) ──
+      const tHead = R * 0.105;   // head radius
+      const tTail = R * 0.095;   // tail arc radius
       for (let i = 0; i < 3; i++) {
-        const a  = (i / 3) * Math.PI * 2 + Math.PI / 6 - Math.PI / 2 + angle * 0.5;
-        const tx = Math.cos(a) * R * 0.60;
-        const ty = Math.sin(a) * R * 0.60;
+        const a  = i * (Math.PI*2/3);   // gap center
+        const tx = Math.cos(a) * iR;
+        const ty = Math.sin(a) * iR;
 
         ctx.save();
         ctx.translate(tx, ty);
-        ctx.rotate(a + Math.PI * 0.65);
+        ctx.rotate(a + Math.PI/2);
 
-        // head circle
-        ctx.beginPath();
-        ctx.arc(0, 0, R * 0.125, 0, Math.PI*2);
-        ctx.fillStyle = '#000';
-        ctx.fill();
+        // head
+        ctx.beginPath(); ctx.arc(0, 0, tHead, 0, Math.PI*2);
+        ctx.fillStyle = '#000'; ctx.fill();
 
-        // curved tail using arc stroke trick
-        const tailR = R * 0.13;
+        // tail — sweeping arc inward
         ctx.beginPath();
-        ctx.arc(tailR * 0.5, 0, tailR, Math.PI * 0.85, Math.PI * 2.1);
-        ctx.lineWidth = R * 0.085;
+        ctx.arc(tTail*0.8, 0, tTail, Math.PI*0.88, Math.PI*2.08);
         ctx.strokeStyle = '#000';
-        ctx.lineCap = 'round';
+        ctx.lineWidth   = tTail * 0.68;
+        ctx.lineCap     = 'round';
         ctx.stroke();
 
         ctx.restore();
       }
 
-      // ── Center pupil ──
-      ctx.beginPath(); ctx.arc(0, 0, R*0.11, 0, Math.PI*2);
-      ctx.fillStyle = '#000'; ctx.fill();
-
-      ctx.restore();
+      ctx.restore(); // end inner spin
+      ctx.restore(); // end translate
     }
 
     function drawVortex(ctx, cx, cy, t, vortexProgress) {
