@@ -415,6 +415,32 @@
     }
 
     updateUI();
+
+    // Auto-flip on hold
+    let holdTimer = null;
+    let holdInterval = null;
+
+    function startHold() {
+      holdTimer = setTimeout(() => {
+        holdInterval = setInterval(() => {
+          if (!flipping) flipCoin();
+        }, 750);
+      }, 400);
+    }
+
+    function stopHold() {
+      clearTimeout(holdTimer);
+      clearInterval(holdInterval);
+      holdTimer = null;
+      holdInterval = null;
+    }
+
+    const flipBtn = document.getElementById('flipBtn');
+    flipBtn.addEventListener('mousedown', startHold);
+    flipBtn.addEventListener('mouseup', stopHold);
+    flipBtn.addEventListener('mouseleave', stopHold);
+    flipBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(); });
+    flipBtn.addEventListener('touchend', stopHold);
   </script>
 </body>
 </html>
