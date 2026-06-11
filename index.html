@@ -630,6 +630,9 @@
   <script>
     let heads = 0, tails = 0, history = [], flipping = false;
     let currentUser = '';
+    let universe    = 'basic';
+    let atlaFlips   = {water:0, air:0, earth:0, fire:0, avatar:0};
+    let atlaHistory = [];
 
     function doLogin() {
       const username = document.getElementById('loginUsername').value.trim();
@@ -657,8 +660,8 @@
     });
 
     function flipCoin() {
-      if (universe === 'atla') { atlaFlipCoin(); return; }
       if (flipping) return;
+      if (universe === 'atla') { atlaFlipCoin(); return; }
       flipping = true;
 
       const coin = document.getElementById('coin');
@@ -726,6 +729,7 @@
 
     // ── KAMUI CANVAS VORTEX ──
     let kamuiRAF = null;
+    let kamuiRunning = false;
 
     // Pre-compute burst lines once — no per-frame flicker
     const BURST_LINES = (() => {
@@ -893,6 +897,7 @@
     }
 
     function startKamui() {
+      kamuiRunning = true;
       const canvas = document.getElementById('kamuiCanvas');
       canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -904,6 +909,7 @@
       const VORTEX_START  = 38;
 
       function draw() {
+        if (!kamuiRunning) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // sharingan phase
@@ -931,6 +937,7 @@
     }
 
     function stopKamui() {
+      kamuiRunning = false;
       cancelAnimationFrame(kamuiRAF);
       const canvas = document.getElementById('kamuiCanvas');
       canvas.classList.remove('active');
@@ -1031,10 +1038,6 @@
     /* ═══════════════════════════════════════════════════
        ATLA UNIVERSE
     ═══════════════════════════════════════════════════ */
-    let universe   = 'basic';
-    let atlaFlips  = {water:0, air:0, earth:0, fire:0, avatar:0};
-    let atlaHistory = [];
-
     function setUniverse(u) {
       universe = u;
       document.getElementById('btnBasic').classList.toggle('active', u==='basic');
@@ -1078,7 +1081,6 @@
 
     /* ── ATLA flip ── */
     function atlaFlipCoin() {
-      if (flipping) return;
       flipping = true;
       const coin  = document.getElementById('coin');
       const btn   = document.getElementById('flipBtn');
